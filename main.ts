@@ -4,7 +4,9 @@ import {
   Status,
 } from "https://deno.land/x/oak@v10.0.0/mod.ts";
 import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.28.1/mod.ts";
-import * as eta from "https://deno.land/x/eta@v1.12.3/mod.ts";
+import { timeAgo } from "https://deno.land/x/time_ago@v1/mod.ts";
+
+import view from "./view.ts";
 
 const MONGO_URI = Deno.env.get("MONGO_URI");
 if (!MONGO_URI) throw new Error("MONGO_URI not found");
@@ -15,23 +17,26 @@ const router = new Router();
 const client = new MongoClient();
 
 await client.connect(MONGO_URI);
-const collection = client.database().collection("posts");
 
-const viewPath = `${Deno.cwd()}/views/`;
+interface Post {
+  _id: Bson.ObjectId;
+  title: string;
+}
 
-eta.configure({
-  views: viewPath,
-});
+const collection = client.database().collection<Post>("posts");
 
 router.get("/", async (ctx) => {
-  const posts = await collection.find({}, { noCursorTimeout: false })
-    .toArray();
+  const posts = await collection
+    .find({}, { noCursorTimeout: false })
+    .sort({
+      _id: -1,
+    })
+    .map((post) => ({
+      ...post,
+      timeAgo: timeAgo(post._id.getTimestamp()),
+    }));
 
-  ctx.response.body = posts;
-});
-
-router.get("/test", async (ctx) => {
-  ctx.response.body = await eta.renderFile("./posts", { food: "cake" })!;
+  ctx.response.body = view(posts)!;
 });
 
 router.post("/", async (ctx) => {
