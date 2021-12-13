@@ -1,3 +1,6 @@
+const e = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 interface Post {
   title: string;
   timeAgo: string;
@@ -35,7 +38,7 @@ const head = `<head>
 const post = (p: Post) =>
   `<div class="card mb-2">
       <div class="card-body">
-         <h5 class="card-title">${p.title}</h5>
+         <h5 class="card-title">${e(p.title)}</h5>
          <p class="card-text text-end text-muted">${p.timeAgo}</p>
       </div>
 </div>`;
