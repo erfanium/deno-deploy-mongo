@@ -1,6 +1,4 @@
 # deno-deploy-mongo
-Deno + Deno Deploy + MongoDB
-
 A sample project using Deno + Deno Deploy + MongoDB + Oak 
 
 ## Link
