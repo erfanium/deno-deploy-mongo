@@ -11,12 +11,18 @@ import view from "./view.ts";
 const MONGO_URI = Deno.env.get("MONGO_URI");
 if (!MONGO_URI) throw new Error("MONGO_URI not found");
 
+const deploymentTime = Date.now();
+
 const app = new Application();
 const router = new Router();
 
 const client = new MongoClient();
-
-await client.connect(MONGO_URI);
+try {
+  await client.connect(MONGO_URI);
+} catch (err) {
+  console.error("Error connecting to MongoDB", err);
+  throw err;
+}
 
 interface Post {
   _id: Bson.ObjectId;
@@ -26,17 +32,22 @@ interface Post {
 const collection = client.database().collection<Post>("posts");
 
 router.get("/", async (ctx) => {
-  const posts = await collection
-    .find({}, { noCursorTimeout: false })
-    .sort({
-      _id: -1,
-    })
-    .map((post) => ({
-      ...post,
-      timeAgo: timeAgo(post._id.getTimestamp()),
-    }));
+  try {
+    const posts = await collection
+      .find({}, { noCursorTimeout: false })
+      .sort({
+        _id: -1,
+      })
+      .map((post) => ({
+        ...post,
+        timeAgo: timeAgo(post._id.getTimestamp()),
+      }));
 
-  ctx.response.body = view(posts)!;
+    ctx.response.body = view(posts)!;
+  } catch (err) {
+    console.error("Error on find", Date.now() - deploymentTime, err);
+    throw err;
+  }
 });
 
 router.post("/", async (ctx) => {
