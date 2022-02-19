@@ -3,7 +3,7 @@ import {
   Router,
   Status,
 } from "https://deno.land/x/oak@v10.0.0/mod.ts";
-import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.29.0/mod.ts";
+import { Bson, MongoClient } from "https://deno.land/x/mongo@v0.29.2/mod.ts";
 import { timeAgo } from "https://deno.land/x/time_ago@v1/mod.ts";
 
 import view from "./view.ts";
